@@ -1,0 +1,41 @@
+# Node.js with Vue
+# Build a Node.js project that uses Vue.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: aas-secret
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    cd sechack365-keyboard-survey-app/
+    npm install
+    npm run generate
+  displayName: 'Generate static site'
+
+- script: |
+    mkdir -p $(Agent.TempDirectory)/deploy/sechack365-keyboard-survey-app/
+    cp -R sechack365-keyboard-survey-app/dist/ $(Agent.TempDirectory)/deploy/sechack365-keyboard-survey-app/
+    cp -R sechack365-keyboard-survey-server/ $(Agent.TempDirectory)/deploy/
+    git rev-parse HEAD > $(Agent.TempDirectory)/deploy/sechack365-keyboard-survey-app/dist/version.txt
+    cd  $(Agent.TempDirectory)/deploy/
+    git config --global user.email "azure-pipelines@example.com"
+    git config --global user.name "azure-pipelines"
+    git init
+    git add --all
+    git commit -a -m 'azure-pipelines'
+    ((DEPLOY_TO_PROD)) && git remote add origin https://$(AAS_PROD_USER):$(AAS_PROD_PASSWORD)@sechack365-keyboard-survey-app.scm.azurewebsites.net:443/sechack365-keyboard-survey-app.git
+    ((DEPLOY_TO_PROD)) || git remote add origin https://$(AAS_DEV_USER):$(AAS_DEV_PASSWORD)@sechack365-keyboard-survey-app-dev.scm.azurewebsites.net:443/sechack365-keyboard-survey-app-dev.git
+    git push -f origin master
+  displayName: 'Deploy to Azure App Service'

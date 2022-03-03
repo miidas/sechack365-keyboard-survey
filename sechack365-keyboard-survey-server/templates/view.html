@@ -1,0 +1,13 @@
+<h2>{{ dirname }}</h2>
+<ul>
+    {% for file in files %}
+    <li>
+        <a href="{{ 'view?action=get&uuid=' + uuid + '&key=' + key + '&file=' + file }}">
+            {{ file }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+<br/>
+<a href="{{ 'view?action=download&uuid=' + uuid + '&key=' + key }}">Download files</a>
+<a href="{{ 'view?action=delete&uuid=' + uuid + '&key=' + key }}">Delete files</a>
